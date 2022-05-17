@@ -1,12 +1,19 @@
 package lexicalAnalyzer;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Vector;
+
+import utils.LexType;
+import utils.Token;
+
 /**
- * @author RRRRRika
+ * @author 
  * 
  * DFA 自动机，返回一个单词的种类
  */
 
-import utils.LexType;
 
 // 自动机状态集合
 enum StateType {
@@ -20,64 +27,74 @@ enum StateType {
     DONE,       // 完成
 }
 
-public class DFA {
+class DFA {
     private StateType state;
-    private String word;
+    private int pos;
+    private FileInputStream fis;
+    private Vector<Token> tokenList;
+    private HashMap<String, LexType> reservedWords = new HashMap<String, LexType>();
 
     public DFA() {
         state = StateType.START;
-        word = "";
+        initHashMap();
     }
 
-    public DFA(String word) {
+    public DFA(String program) {
         state = StateType.START;
-        this.word = word;
+        initHashMap();
     }
 
-    public DFA(StateType state, String word) {
+    public DFA(StateType state, String program) {
         this.state = state;
-        this.word = word;
+        initHashMap();
     }
 
-    public void setWord(String word) {
-        this.word = word;
+    private void initHashMap() {
+        reservedWords.put("program", LexType.PROGRAM);
+        reservedWords.put("procedure", LexType.PROCEDURE);
+        reservedWords.put("type", LexType.TYPE);
+        reservedWords.put("var", LexType.VAR);
+        reservedWords.put("if", LexType.IF);
+        reservedWords.put("then", LexType.THEN);
+        reservedWords.put("else", LexType.ELSE);
+        reservedWords.put("fi", LexType.FI);
+        reservedWords.put("while", LexType.WHILE);
+        reservedWords.put("do", LexType.DO);
+        reservedWords.put("endwh", LexType.ENDWH);
+        reservedWords.put("read", LexType.READ);
+        reservedWords.put("write", LexType.WRITE);
+        reservedWords.put("array", LexType.ARRAY);
+        reservedWords.put("of", LexType.OF);
+        reservedWords.put("record", LexType.RECORD);
+        reservedWords.put("return", LexType.RETURN);
+        reservedWords.put("begin", LexType.BEGIN);
+        reservedWords.put("end", LexType.END);
     }
 
-    public LexType getLexType() {
-        char ch;
-        LexType lexType = LexType.DEFAULT;
-        for (int i = 0; i < word.length(); i++) {
-            ch = word.charAt(i);
-            switch (state) {
-                case START:
-                    // ...
-                    break;
-                case INID:
-                    // ...
-                    break;
-                case INNUM:
-                    // ...
-                    break;
-                case INCHAR:
-                    // ...
-                    break;
-                case INASSIGN:
-                    // ...
-                    break;
-                case INCOMMENT:
-                    // ...
-                    break;
-                case INRANGE:
-                    // ...
-                    break;
-                case DONE:
-                    // ...
-                    break;
-            
-                default:
-                    break;
-            }
-        }
-        return lexType;
+    public void setFileInputStream(FileInputStream fis) {
+        this.fis = fis;
+    }
+
+    // 重置DFA状态
+    public void reset() {
+        state = StateType.START;
+    }
+
+    // 回退一步
+    private void back() {
+
+    }
+
+    // 判断是否为保留字
+    private boolean isReservedWord(String word) {
+        word = word.toLowerCase();
+        return reservedWords.containsKey(word);
+    }
+
+    public Vector<Token> getTokenList() throws IOException {
+        // ...
+
+        fis.close();
+        return tokenList;
     }
 }
