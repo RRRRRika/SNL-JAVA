@@ -1,18 +1,15 @@
 package lexicalAnalyzer;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Vector;
-
 import utils.LexType;
 import utils.Token;
 
+import java.io.*;
+import java.util.HashMap;
+import java.util.Vector;
+
 /**
  * @author RRRRRika
- * 
+ * <p>
  * DFA 自动机，返回 tokenList
  */
 
@@ -31,23 +28,13 @@ enum StateType {
 class DFA {
     private StateType state;
     private int inlinePos;
-    private String curLine;
-    private FileReader reader;
-    private Vector<Token> tokenList;
-    private HashMap<String, LexType> reservedWords = new HashMap<String, LexType>();
+    private BufferedReader reader;
+    private final Vector<Token> tokenList;
+    private final HashMap<String, LexType> reservedWords = new HashMap<>();
 
     public DFA() {
         state = StateType.START;
-        initHashMap();
-    }
-
-    public DFA(String program) {
-        state = StateType.START;
-        initHashMap();
-    }
-
-    public DFA(StateType state, String program) {
-        this.state = state;
+        tokenList = new Vector<>();
         initHashMap();
     }
 
@@ -71,15 +58,12 @@ class DFA {
         reservedWords.put("return", LexType.RETURN);
         reservedWords.put("begin", LexType.BEGIN);
         reservedWords.put("end", LexType.END);
+        reservedWords.put("integer", LexType.INTEGER);
+        reservedWords.put("char", LexType.CHAR);
     }
 
     public void setFile(File file) throws FileNotFoundException {
-        this.reader = new FileReader(file);
-    }
-
-    // 重置DFA状态
-    public void reset() {
-        state = StateType.START;
+        this.reader = new BufferedReader(new FileReader(file));
     }
 
     // 回退一步
@@ -91,21 +75,11 @@ class DFA {
 
     // 读取一行
     private String readLine() throws IOException {
-        StringBuilder sb = new StringBuilder();
-        char c;
-        while ((c = (char) reader.read()) != (char) -1) {
-            sb.append(c);
-            if (c == '\n') {
-                sb.append(c);
-                break;
-            }
+        String line = reader.readLine();
+        if (line != null) {
+            line += '\n';
         }
-        return sb.toString();
-    }
-
-    // 判断是否已读完文件
-    private boolean isEOF() throws IOException {
-        return reader.read() == -1;
+        return line;
     }
 
     // 判断是否为保留字
@@ -117,21 +91,29 @@ class DFA {
     public Vector<Token> getTokenList() throws IOException {
         int lines = 0;
         char ch;
+        boolean inComment = false;
+        String curLine;
         Token curToken = new Token();
 
-        while (!isEOF()) {
-            curLine = readLine();
+        while ((curLine = readLine()) != null) {
+//            System.out.println("read line : " + curLine);
             lines++;
             inlinePos = 0;
 
             while (inlinePos < curLine.length()) {
-                String sem = "";
-                state = StateType.START;
+                StringBuilder sem = new StringBuilder();
+                // 多行注释时
+                if (inComment) {
+                    state = StateType.INCOMMENT;
+                } else {
+                    state = StateType.START;
+                }
                 boolean error = false;
 
-                while (state != StateType.DONE) {
+                while (state != StateType.DONE && inlinePos < curLine.length()) {
                     boolean save = true;
                     ch = curLine.charAt(inlinePos);
+//                    System.out.print(ch);
 
                     switch (state) {
                         case START:
@@ -146,6 +128,7 @@ class DFA {
                                 state = StateType.INASSIGN;
                             } else if (ch == '{') {
                                 save = false;
+                                inComment = true;
                                 state = StateType.INCOMMENT;
                             } else if (ch == '.') {
                                 state = StateType.INRANGE;
@@ -197,16 +180,16 @@ class DFA {
                                 ungetNextChar();
                                 save = false;
                                 state = StateType.DONE;
-                                curToken.setLex(LexType.INTEGER);
+                                curToken.setLex(LexType.INTC);
                             }
                             break;
                         case INCHAR:
                             if (Character.isDigit(ch) || Character.isLetter(ch)) {
                                 char next = curLine.charAt(inlinePos + 1);
                                 if (next == '\'') {
-                                    save = true;
+                                    inlinePos++;
                                     state = StateType.DONE;
-                                    curToken.setLex(LexType.CHAR);
+                                    curToken.setLex(LexType.CHARC);
                                 } else {
                                     ungetNextChar();
                                     ungetNextChar();
@@ -234,9 +217,8 @@ class DFA {
                             break;
                         case INCOMMENT:
                             save = false;
-                            if (inlinePos == curLine.length() - 1) {
-                                state = StateType.DONE;
-                            } else if (ch == '}') {
+                            if (ch == '}') {
+                                inComment = false;
                                 state = StateType.START;
                             }
                             break;
@@ -250,36 +232,35 @@ class DFA {
                                 curToken.setLex(LexType.DOT);
                             }
                             break;
-                        case DONE:
-                            break;
                     }
 
                     if (save) {
-                        sem += ch;
+                        sem.append(ch);
                     }
+
+                    inlinePos++;
                 }
 
                 // 出错处理
                 if (error) {
-                    System.out.println("ERROR: line " + Integer.toString(lines) + ", position "
-                            + Integer.toString(inlinePos) + ": " + sem);
+                    System.out.println("ERROR: line " + lines + ", position "
+                            + inlinePos + ": " + sem);
                 }
 
                 curToken.setLine(lines);
                 if (curToken.lex == LexType.ID) {
-                    if (isReservedWord(sem)) {
-                        curToken.setLex(reservedWords.get(sem));
+                    if (isReservedWord(sem.toString())) {
+                        curToken.setLex(reservedWords.get(sem.toString()));
                     } else {
-                        curToken.setSem(sem);
+                        curToken.setSem(sem.toString());
                     }
                 } else {
-                    curToken.setSem(sem);
+                    curToken.setSem(sem.toString());
                 }
 
-                if (sem != "") {
-                    tokenList.add(curToken);
-                    curToken = new Token();
-                }
+                tokenList.add(curToken);
+                curToken = new Token();
+
             }
         }
 

@@ -6,7 +6,7 @@ public class Token {
     public String sem = "";
 
     public Token() {
-        
+
     }
 
     public Token(int line, LexType lex, String sem) {
@@ -29,10 +29,10 @@ public class Token {
 
     @Override
     public String toString() {
-        if (sem != "") {
-            return "<" + Integer.toString(line) + ", " + lex.toString() + ", " + sem + ">";
+        if (sem.equals("")) {
+            return "<" + line + ", " + lex.toString() + ">";
         } else {
-            return "<" + Integer.toString(line) + ", " + lex.toString() + ">";
+            return "<" + line + ", " + lex.toString() + ", " + sem + ">";
         }
     }
 }
