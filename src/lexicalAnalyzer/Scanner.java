@@ -1,7 +1,6 @@
 package lexicalAnalyzer;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
@@ -17,7 +16,6 @@ import utils.Token;
 
 public class Scanner {
     private File file;
-    private FileInputStream fis;
     private DFA dfa;
 
     public Scanner() {
@@ -56,8 +54,7 @@ public class Scanner {
     }
 
     public Vector<Token> getTokenList() throws FileNotFoundException, IOException {
-        FileInputStream fis = new FileInputStream(file);
-        dfa.setFileInputStream(fis);
+        dfa.setFile(file);
         return dfa.getTokenList();
     }
 }

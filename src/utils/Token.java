@@ -5,6 +5,10 @@ public class Token {
     public LexType lex = LexType.DEFAULT;
     public String sem = "";
 
+    public Token() {
+        
+    }
+
     public Token(int line, LexType lex, String sem) {
         this.line = line;
         this.lex = lex;
