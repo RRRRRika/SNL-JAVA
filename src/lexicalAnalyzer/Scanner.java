@@ -1,5 +1,6 @@
 package lexicalAnalyzer;
 
+import utils.LexType;
 import utils.Token;
 
 import java.io.*;
@@ -7,7 +8,7 @@ import java.util.Vector;
 
 /**
  * @author RRRRRika
- * <p>
+ *
  * 词法分析器 Scanner，基于 DFA
  * 用于生成 token 列表
  */
@@ -63,6 +64,21 @@ public class Scanner {
         BufferedWriter rw = new BufferedWriter(new FileWriter(path));
         for (Token t : v) {
             rw.write(t.toString());
+            rw.newLine();
+        }
+        rw.close();
+    }
+
+    public void getTokenListAnotherFormat(String path) throws Exception {
+        dfa.setFile(file);
+        Vector<Token> v = dfa.getTokenList();
+        BufferedWriter rw = new BufferedWriter(new FileWriter(path));
+        for (Token t : v) {
+            if ((t.lex.ordinal() >= 23 && t.lex.ordinal() <= 41) || (t.lex.ordinal() == 1 || t.lex.ordinal() == 2) || t.lex == LexType.ID) {
+                rw.write(String.valueOf(t.lex));
+            } else {
+                rw.write(t.sem);
+            }
             rw.newLine();
         }
         rw.close();

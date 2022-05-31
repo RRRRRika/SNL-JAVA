@@ -9,7 +9,7 @@ import java.util.Vector;
 
 /**
  * @author RRRRRika
- * <p>
+ *
  * DFA 自动机，返回 tokenList
  */
 
@@ -258,8 +258,11 @@ class DFA {
                     curToken.setSem(sem.toString());
                 }
 
-                tokenList.add(curToken);
-                curToken = new Token();
+                // 因换行符可能出现sem为空的情况
+                if (!sem.toString().equals("")) {
+                    tokenList.add(curToken);
+                    curToken = new Token();
+                }
 
             }
         }
