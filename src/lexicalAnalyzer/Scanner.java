@@ -54,13 +54,16 @@ public class Scanner {
 
     public Vector<Token> getTokenList() throws IOException {
         dfa.setFile(file);
-        return dfa.getTokenList();
+        Vector<Token> v = (Vector<Token>) dfa.getTokenList().clone();
+        dfa.reset();
+        return v;
     }
 
     // 保存 tokenList 至文件
     public void getTokenListAndSave(String path) throws IOException {
         dfa.setFile(file);
-        Vector<Token> v = dfa.getTokenList();
+        Vector<Token> v = (Vector<Token>) dfa.getTokenList().clone();
+        dfa.reset();
         BufferedWriter rw = new BufferedWriter(new FileWriter(path));
         for (Token t : v) {
             rw.write(t.toString());
@@ -71,7 +74,8 @@ public class Scanner {
 
     public void getTokenListAnotherFormat(String path) throws Exception {
         dfa.setFile(file);
-        Vector<Token> v = dfa.getTokenList();
+        Vector<Token> v = (Vector<Token>) dfa.getTokenList().clone();
+        dfa.reset();
         BufferedWriter rw = new BufferedWriter(new FileWriter(path));
         for (Token t : v) {
             if ((t.lex.ordinal() >= 23 && t.lex.ordinal() <= 41) || (t.lex.ordinal() == 1 || t.lex.ordinal() == 2) || t.lex == LexType.ID) {

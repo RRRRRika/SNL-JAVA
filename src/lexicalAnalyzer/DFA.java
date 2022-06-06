@@ -88,6 +88,11 @@ class DFA {
         return reservedWords.containsKey(word);
     }
 
+    // 重置tokenList
+    public void reset() {
+        tokenList.removeAllElements();
+    }
+
     public Vector<Token> getTokenList() throws IOException {
         int lines = 0;
         char ch;
